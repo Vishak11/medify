@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import TaskPopup from '../PopUp/PopUp';
 
 const initialTasks = [
   { id: 1, title: 'Task 1', description: 'Description 1', status: 'TODO', createdAt: '01/09/2021, 05:30:00' },
@@ -16,6 +17,12 @@ const TaskBoard = () => {
   const [draggedTask, setDraggedTask] = useState(null);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', status: 'TODO' });
+
+  const [isEditPopupOpen, setIsEditPopupOpen] = useState(false); // Track Edit Popup visibility
+  const [taskToEdit, setTaskToEdit] = useState(null);
+
+  const [isViewPopupOpen, setIsViewPopupOpen] = useState(false);  // State to control View Details popup
+  const [taskToView, setTaskToView] = useState(null); 
 
   const filteredTasks = tasks.filter(task =>
     task.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -92,6 +99,25 @@ const TaskBoard = () => {
 
   const handleSort = (e) => {
     setSortBy(e.target.value);
+  };
+
+  const handleEditTask = (task) => {
+    setTaskToEdit(task); // Set the task to be edited
+    setIsEditPopupOpen(true); // Open the Edit Popup
+  };
+
+  const handleViewTask = (task) => {
+    setTaskToView(task);  // Set the task to view
+    setIsViewPopupOpen(true);  // Open the View Details popup
+  };
+
+
+  const handleSaveEditedTask = (updatedTask) => {
+    const updatedTasks = tasks.map(task =>
+      task.id === updatedTask.id ? updatedTask : task
+    );
+    setTasks(updatedTasks);
+    setIsEditPopupOpen(false); // Close the popup after saving
   };
 
   const styles = {
@@ -335,13 +361,13 @@ const TaskBoard = () => {
                     </button>
                     <button
                       style={{...styles.actionButton, ...styles.editButton}}
-                      onClick={() => editTask(task.id)}
+                      onClick={() => handleEditTask(task)}
                     >
                       Edit
                     </button>
                     <button
                       style={{...styles.actionButton, ...styles.viewButton}}
-                      onClick={() => viewDetails(task.id)}
+                      onClick={() => handleViewTask(task)}
                     >
                       View Details
                     </button>
@@ -393,6 +419,20 @@ const TaskBoard = () => {
           </div>
         )}
       </div>
+      {isEditPopupOpen && (
+        <TaskPopup
+          isOpen={isEditPopupOpen}
+          onClose={() => setIsEditPopupOpen(false)}
+          initialTask={taskToEdit}
+          onSave={handleSaveEditedTask}
+        />
+      )}
+      {isViewPopupOpen && (
+        <TaskPopup
+          task={taskToView}  // Pass the selected task to the popup
+          onClose={() => setIsViewPopupOpen(false)}  // Close the popup
+        />
+      )}
     </>
   );
 };
